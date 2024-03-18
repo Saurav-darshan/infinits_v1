@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:infinits_v1/screens/Homepage.dart';
+import 'package:infinits_v1/screens/LandingPage.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -124,7 +124,7 @@ class _LoginScreenState extends State<LoginScreen> {
                               Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => Homepage(),
+                                    builder: (context) => Landingpage(),
                                   ));
                             });
                           },

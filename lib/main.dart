@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:infinits_v1/screens/login.dart';
+import 'package:infinits_v1/screens/SplashScreen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -17,6 +17,6 @@ class MyApp extends StatelessWidget {
           colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
           useMaterial3: true,
         ),
-        home: Attendance());
+        home: SplashScreen());
   }
 }
