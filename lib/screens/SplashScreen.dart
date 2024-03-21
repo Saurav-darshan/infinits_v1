@@ -1,7 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:infinits_v1/screens/LandingPage.dart';
 import 'package:infinits_v1/screens/LoginPage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -11,11 +13,25 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  late String? finalloginDetail;
   void initState() {
     super.initState();
-    Timer(Duration(seconds: 3), () {
-      Navigator.pushReplacement(
-          context, MaterialPageRoute(builder: (context) => LoginScreen()));
+    isLogin().whenComplete(() async {
+      Timer(Duration(seconds: 3), () {
+        Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+                builder: (context) =>
+                    finalloginDetail == null ? LoginScreen() : Landingpage()));
+      });
+    });
+  }
+
+  Future isLogin() async {
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    var obtained_detail = sp.getString('isLogin');
+    setState(() {
+      finalloginDetail = obtained_detail;
     });
   }
 

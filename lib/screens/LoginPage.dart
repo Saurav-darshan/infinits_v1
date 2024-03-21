@@ -1,5 +1,9 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
+import 'package:http/http.dart';
 import 'package:infinits_v1/screens/LandingPage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -12,6 +16,60 @@ class _LoginScreenState extends State<LoginScreen> {
   Color myColor = Color.fromARGB(255, 246, 198, 127);
   bool isRemember = false;
   bool isObscure = true;
+  TextEditingController UsernameController = TextEditingController();
+  TextEditingController PasswordController = TextEditingController();
+  void login(String username, String password) async {
+    try {
+      Response response = await post(
+          Uri.parse("https://imapi.mybusi.net/api/auth/signin"),
+          body: {
+            "username": username,
+            "password": password,
+          });
+      if (response.statusCode == 200) {
+        if (isRemember == true) {
+          saveCredentials();
+        }
+        var data = jsonDecode(response.body.toString());
+
+        setState(() {
+          Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (context) => Landingpage(),
+              ));
+        });
+
+        print(data);
+      } else if (response.statusCode == 401) {
+        showDialog(
+            context: context,
+            builder: (context) {
+              return Container(
+                child: AlertDialog(
+                  backgroundColor: Colors.white,
+                  title: Text("Invalid Password"),
+                  actions: [
+                    TextButton(
+                        style: ButtonStyle(
+                            foregroundColor:
+                                MaterialStateProperty.all(Colors.black)),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
+                        child: Text("OK"))
+                  ],
+                ),
+              );
+            });
+      } else {
+        print(response.statusCode);
+      }
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
   //define primary
   @override
   Widget build(BuildContext context) {
@@ -64,16 +122,16 @@ class _LoginScreenState extends State<LoginScreen> {
                               fontWeight: FontWeight.w500),
                         ),
                         const SizedBox(height: 60),
-                        TextField(
-                          controller: TextEditingController(),
+                        TextFormField(
+                          controller: UsernameController,
                           decoration: InputDecoration(
                               prefixIcon: Icon(Icons.person_3),
                               hintText: 'Username'),
                         ),
                         const SizedBox(height: 40),
-                        TextField(
+                        TextFormField(
                           obscureText: isObscure,
-                          controller: TextEditingController(),
+                          controller: PasswordController,
                           decoration: InputDecoration(
                               prefixIcon: Icon(Icons.password_rounded),
                               suffixIcon: InkWell(
@@ -120,13 +178,8 @@ class _LoginScreenState extends State<LoginScreen> {
                         const SizedBox(height: 20),
                         ElevatedButton(
                           onPressed: () {
-                            setState(() {
-                              Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => Landingpage(),
-                                  ));
-                            });
+                            login(UsernameController.text.toString(),
+                                PasswordController.text.toString());
                           },
                           style: ElevatedButton.styleFrom(
                             shape: StadiumBorder(),
@@ -150,5 +203,10 @@ class _LoginScreenState extends State<LoginScreen> {
         ),
       ),
     );
+  }
+
+  void saveCredentials() async {
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    sp.setString("isLogin", UsernameController.toString());
   }
 }
