@@ -16,8 +16,38 @@ class _LoginScreenState extends State<LoginScreen> {
   Color myColor = Color.fromARGB(255, 246, 198, 127);
   bool isRemember = false;
   bool isObscure = true;
+  bool isUserNotEmpty = false;
+  bool isPasswordNotEmpty = false;
   TextEditingController UsernameController = TextEditingController();
   TextEditingController PasswordController = TextEditingController();
+
+  @override
+  void initState() {
+    UsernameController.addListener(() {
+      final isUserNotEmpty = UsernameController.text.isNotEmpty;
+
+      setState(() {
+        this.isUserNotEmpty = isUserNotEmpty;
+      });
+    });
+
+    PasswordController.addListener(() {
+      final isPasswordNotEmpty = PasswordController.text.isNotEmpty;
+      setState(() {
+        this.isPasswordNotEmpty = isPasswordNotEmpty;
+      });
+    });
+    super.initState();
+  }
+
+  @override
+  void dispose() {
+    UsernameController.dispose();
+    PasswordController.dispose();
+
+    super.dispose();
+  }
+
   void login(String username, String password) async {
     try {
       Response response = await post(
@@ -42,28 +72,31 @@ class _LoginScreenState extends State<LoginScreen> {
 
         print(data);
       } else if (response.statusCode == 401) {
-        showDialog(
-            context: context,
-            builder: (context) {
-              return Container(
-                child: AlertDialog(
-                  backgroundColor: Colors.white,
-                  title: Text("Invalid Password"),
-                  actions: [
-                    TextButton(
-                        style: ButtonStyle(
-                            foregroundColor:
-                                MaterialStateProperty.all(Colors.black)),
-                        onPressed: () {
-                          Navigator.pop(context);
-                        },
-                        child: Text("OK"))
-                  ],
-                ),
-              );
-            });
+        print(
+            "RESPONSE:_______${response.statusCode}__________________ ${response.body}");
+        // showDialog(
+        //     context: context,
+        //     builder: (context) {
+        //       return Container(
+        //         child: AlertDialog(
+        //           backgroundColor: Colors.white,
+        //           title: Text("Invalid Password"),
+        //           actions: [
+        //             TextButton(
+        //                 style: ButtonStyle(
+        //                     foregroundColor:
+        //                         MaterialStateProperty.all(Colors.black)),
+        //                 onPressed: () {
+        //                   Navigator.pop(context);
+        //                 },
+        //                 child: Text("OK"))
+        //           ],
+        //         ),
+        //       );
+        //     });
       } else {
-        print(response.statusCode);
+        print(
+            "RESPONSE:_______${response.statusCode}__________________ ${response.body}");
       }
     } catch (e) {
       print(e.toString());
@@ -135,18 +168,21 @@ class _LoginScreenState extends State<LoginScreen> {
                           decoration: InputDecoration(
                               prefixIcon: Icon(Icons.password_rounded),
                               suffixIcon: InkWell(
-                                  onTap: () {
-                                    if (isObscure == true) {
-                                      setState(() {
-                                        isObscure = false;
-                                      });
-                                    } else {
-                                      setState(() {
-                                        isObscure = true;
-                                      });
-                                    }
-                                  },
-                                  child: Icon(Icons.remove_red_eye)),
+                                onTap: () {
+                                  if (isObscure == true) {
+                                    setState(() {
+                                      isObscure = false;
+                                    });
+                                  } else {
+                                    setState(() {
+                                      isObscure = true;
+                                    });
+                                  }
+                                },
+                                child: isObscure == false
+                                    ? Icon(Icons.visibility_off_rounded)
+                                    : Icon(Icons.visibility_rounded),
+                              ),
                               hintText: 'Password'),
                         ),
                         const SizedBox(height: 20),
@@ -177,11 +213,15 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 20),
                         ElevatedButton(
-                          onPressed: () {
-                            login(UsernameController.text.toString(),
-                                PasswordController.text.toString());
-                          },
+                          onPressed: (isUserNotEmpty == true &&
+                                  isPasswordNotEmpty == true)
+                              ? () {
+                                  login(UsernameController.text.toString(),
+                                      PasswordController.text.toString());
+                                }
+                              : null,
                           style: ElevatedButton.styleFrom(
+                            surfaceTintColor: Colors.green[700],
                             shape: StadiumBorder(),
                             elevation: 20,
                             shadowColor: myColor,
