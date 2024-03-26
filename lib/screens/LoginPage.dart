@@ -68,6 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
         var data = jsonDecode(response.body.toString());
 
         setState(() {
+          ScaffoldMessenger.of(context).showSnackBar(Welcome_Snack);
           Navigator.pushReplacement(
               context,
               MaterialPageRoute(
@@ -167,6 +168,8 @@ class _LoginScreenState extends State<LoginScreen> {
                             validator: (value) {
                               value = status.toString();
                               if (value == "404") {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(User_Snack);
                                 return "User Not Found";
                               } else {
                                 return null;
@@ -182,6 +185,9 @@ class _LoginScreenState extends State<LoginScreen> {
                             validator: (value) {
                               value = status.toString();
                               if (value == "401") {
+                                ScaffoldMessenger.of(context)
+                                    .showSnackBar(Password_Snack);
+
                                 return "Invalid Password";
                               } else {
                                 return null;
@@ -280,4 +286,51 @@ class _LoginScreenState extends State<LoginScreen> {
     SharedPreferences sp = await SharedPreferences.getInstance();
     sp.setString("isLogin", UsernameController.toString());
   }
+
+  final Welcome_Snack = SnackBar(
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      content: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          color: Colors.green[700],
+        ),
+        height: 30,
+        child: Text(
+          "Login Successfull !",
+          style: TextStyle(),
+        ),
+      ));
+
+  final User_Snack = SnackBar(
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      content: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          color: Colors.red,
+        ),
+        height: 30,
+        child: Text(
+          "User Not Found !",
+          style: TextStyle(),
+        ),
+      ));
+  final Password_Snack = SnackBar(
+      elevation: 0,
+      backgroundColor: Colors.transparent,
+      content: Container(
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(30),
+          color: Colors.red,
+        ),
+        height: 30,
+        child: Text(
+          "Invalid Password !",
+          style: TextStyle(),
+        ),
+      ));
 }
