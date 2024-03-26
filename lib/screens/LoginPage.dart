@@ -18,8 +18,11 @@ class _LoginScreenState extends State<LoginScreen> {
   bool isObscure = true;
   bool isUserNotEmpty = false;
   bool isPasswordNotEmpty = false;
+  int status = 0;
+
   TextEditingController UsernameController = TextEditingController();
   TextEditingController PasswordController = TextEditingController();
+  final formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -56,6 +59,8 @@ class _LoginScreenState extends State<LoginScreen> {
             "username": username,
             "password": password,
           });
+      status = response.statusCode;
+      print("status--------------------->>>>>>>>>${status}");
       if (response.statusCode == 200) {
         if (isRemember == true) {
           saveCredentials();
@@ -63,7 +68,7 @@ class _LoginScreenState extends State<LoginScreen> {
         var data = jsonDecode(response.body.toString());
 
         setState(() {
-          Navigator.push(
+          Navigator.pushReplacement(
               context,
               MaterialPageRoute(
                 builder: (context) => Landingpage(),
@@ -73,7 +78,8 @@ class _LoginScreenState extends State<LoginScreen> {
         print(data);
       } else if (response.statusCode == 401) {
         print(
-            "RESPONSE:_______${response.statusCode}__________________ ${response.body}");
+            "RESPONSE:_______${response.statusCode}__________________ ${response.body.toString()}");
+
         // showDialog(
         //     context: context,
         //     builder: (context) {
@@ -146,96 +152,121 @@ class _LoginScreenState extends State<LoginScreen> {
                             topRight: Radius.circular(30))),
                     child: Padding(
                       padding: EdgeInsets.all(32),
-                      child: Column(children: [
-                        Text(
-                          "Login Here",
-                          style: TextStyle(
-                              color: Colors.black,
-                              fontSize: 32,
-                              fontWeight: FontWeight.w500),
-                        ),
-                        const SizedBox(height: 60),
-                        TextFormField(
-                          controller: UsernameController,
-                          decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.person_3),
-                              hintText: 'Username'),
-                        ),
-                        const SizedBox(height: 40),
-                        TextFormField(
-                          obscureText: isObscure,
-                          controller: PasswordController,
-                          decoration: InputDecoration(
-                              prefixIcon: Icon(Icons.password_rounded),
-                              suffixIcon: InkWell(
-                                onTap: () {
-                                  if (isObscure == true) {
-                                    setState(() {
-                                      isObscure = false;
-                                    });
-                                  } else {
-                                    setState(() {
-                                      isObscure = true;
-                                    });
+                      child: Form(
+                        key: formKey,
+                        child: Column(children: [
+                          Text(
+                            "Login Here",
+                            style: TextStyle(
+                                color: Colors.black,
+                                fontSize: 32,
+                                fontWeight: FontWeight.w500),
+                          ),
+                          const SizedBox(height: 60),
+                          TextFormField(
+                            validator: (value) {
+                              value = status.toString();
+                              if (value == "404") {
+                                return "User Not Found";
+                              } else {
+                                return null;
+                              }
+                            },
+                            controller: UsernameController,
+                            decoration: InputDecoration(
+                                prefixIcon: Icon(Icons.person_3),
+                                hintText: 'Username'),
+                          ),
+                          const SizedBox(height: 40),
+                          TextFormField(
+                            validator: (value) {
+                              value = status.toString();
+                              if (value == "401") {
+                                return "Invalid Password";
+                              } else {
+                                return null;
+                              }
+                            },
+                            obscureText: isObscure,
+                            controller: PasswordController,
+                            decoration: InputDecoration(
+                                prefixIcon: Icon(Icons.password_rounded),
+                                suffixIcon: InkWell(
+                                  onTap: () {
+                                    if (isObscure == true) {
+                                      setState(() {
+                                        isObscure = false;
+                                      });
+                                    } else {
+                                      setState(() {
+                                        isObscure = true;
+                                      });
+                                    }
+                                  },
+                                  child: isObscure == false
+                                      ? Icon(Icons.visibility_off_rounded)
+                                      : Icon(Icons.visibility_rounded),
+                                ),
+                                hintText: 'Password'),
+                          ),
+                          const SizedBox(height: 20),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Row(children: [
+                                Checkbox(
+                                    value: isRemember,
+                                    onChanged: (value) {
+                                      setState(() {
+                                        isRemember = value!;
+                                      });
+                                    }),
+                                Text(
+                                  "Remember Me",
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                              ]),
+                              TextButton(
+                                onPressed: () {},
+                                child: Text(
+                                  "Forgot password ?",
+                                  style: const TextStyle(color: Colors.grey),
+                                ),
+                              )
+                            ],
+                          ),
+                          const SizedBox(height: 20),
+                          ElevatedButton(
+                            onPressed: (isUserNotEmpty == true &&
+                                    isPasswordNotEmpty == true)
+                                ? () {
+                                    if (formKey.currentState!.validate()) {
+                                      login(UsernameController.text.toString(),
+                                          PasswordController.text.toString());
+                                    } else {
+                                      UsernameController.clear();
+                                      PasswordController.clear();
+                                      status = 0;
+                                    }
                                   }
-                                },
-                                child: isObscure == false
-                                    ? Icon(Icons.visibility_off_rounded)
-                                    : Icon(Icons.visibility_rounded),
-                              ),
-                              hintText: 'Password'),
-                        ),
-                        const SizedBox(height: 20),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Row(children: [
-                              Checkbox(
-                                  value: isRemember,
-                                  onChanged: (value) {
-                                    setState(() {
-                                      isRemember = value!;
-                                    });
-                                  }),
-                              Text(
-                                "Remember Me",
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                            ]),
-                            TextButton(
-                              onPressed: () {},
-                              child: Text(
-                                "Forgot password ?",
-                                style: const TextStyle(color: Colors.grey),
-                              ),
-                            )
-                          ],
-                        ),
-                        const SizedBox(height: 20),
-                        ElevatedButton(
-                          onPressed: (isUserNotEmpty == true &&
-                                  isPasswordNotEmpty == true)
-                              ? () {
-                                  login(UsernameController.text.toString(),
-                                      PasswordController.text.toString());
-                                }
-                              : null,
-                          style: ElevatedButton.styleFrom(
-                            surfaceTintColor: Colors.green[700],
-                            shape: StadiumBorder(),
-                            elevation: 20,
-                            shadowColor: myColor,
-                            backgroundColor: Colors.green[700],
-                            minimumSize: const Size.fromHeight(60),
+                                : null,
+                            style: ElevatedButton.styleFrom(
+                              surfaceTintColor: Colors.green[700],
+                              shape: StadiumBorder(),
+                              elevation: 20,
+                              shadowColor: myColor,
+                              backgroundColor: Colors.green[700],
+                              minimumSize: const Size.fromHeight(60),
+                            ),
+                            child: const Text(
+                              "LOGIN",
+                              style:
+                                  TextStyle(color: Colors.yellow, fontSize: 20),
+                            ),
                           ),
-                          child: const Text(
-                            "LOGIN",
-                            style:
-                                TextStyle(color: Colors.yellow, fontSize: 20),
-                          ),
-                        ),
-                        const SizedBox(height: 20),
-                      ]),
+                          const SizedBox(height: 20),
+                        ]),
+                      ),
                     ),
                   )),
             )
