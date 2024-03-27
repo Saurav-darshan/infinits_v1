@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:infinits_v1/screens/LoginPage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Homepage extends StatefulWidget {
@@ -11,18 +10,113 @@ class Homepage extends StatefulWidget {
 
 class _HomepageState extends State<Homepage> {
   int currentstate = 0;
+  String person_name = "User";
+  String image_uri = "";
+  @override
+  void initState() {
+    Username();
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return SafeArea(
         child: Scaffold(
-            body: TextButton(
-                onPressed: () async {
-                  final SharedPreferences sp =
-                      await SharedPreferences.getInstance();
-                  sp.remove("isLogin");
-                  Navigator.pushReplacement(context,
-                      MaterialPageRoute(builder: (context) => LoginScreen()));
-                },
-                child: Text("logout"))));
+            body: Stack(children: [
+      Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        color: Colors.blueAccent[700],
+        child: Align(
+          alignment: Alignment.topRight,
+          child: Container(
+            width: 65,
+            height: 65,
+            decoration: BoxDecoration(
+                shape: BoxShape.rectangle,
+                color: Colors.orange[700],
+                borderRadius:
+                    BorderRadius.only(bottomLeft: Radius.circular(60))),
+          ),
+        ),
+        // child: Image.asset(
+        //   "assets/bg3.jpeg",
+        //   fit: BoxFit.cover,
+        // ),
+      ),
+      Positioned(
+        top: 40,
+        left: 40,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              "Welcome !",
+              style: TextStyle(color: Colors.white, fontSize: 16),
+            ),
+            Text(
+              person_name,
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold),
+            )
+          ],
+        ),
+      ),
+      Positioned(
+        right: 20,
+        top: 30,
+        child: Container(
+          padding: EdgeInsets.all(5),
+          width: 50,
+          height: 50,
+          decoration: BoxDecoration(
+              color: Colors.black,
+              borderRadius: BorderRadius.all(Radius.elliptical(10, 10))),
+          child: Image.network(
+              "https://imindsbucket.s3.ap-south-1.amazonaws.com/${image_uri}"),
+          // "https://imapi.mybusi.net/${image_uri}"),
+        ),
+      ),
+      InkWell(
+        onTap: () {
+          Scaffold.of(context).openDrawer();
+        },
+        child: Padding(
+          padding: EdgeInsets.only(left: 10, top: 10),
+          child: Icon(
+            Icons.menu_rounded,
+            color: Colors.white,
+            size: 30,
+          ),
+        ),
+      ),
+      Align(
+        alignment: Alignment.bottomCenter,
+        child: Card(
+          elevation: 0,
+          shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(30), topRight: Radius.circular(30))),
+          color: Colors.white,
+          child: Container(
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height / 1.8,
+          ),
+        ),
+      ),
+    ])));
+  }
+
+  Future Username() async {
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    var name = sp.getString('person_name');
+    var uri = sp.getString('image_uri');
+    setState(() {
+      person_name = name!;
+      image_uri = uri!;
+    });
   }
 }

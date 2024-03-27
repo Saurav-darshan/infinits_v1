@@ -59,13 +59,18 @@ class _LoginScreenState extends State<LoginScreen> {
             "username": username,
             "password": password,
           });
+
       status = response.statusCode;
-      print("status--------------------->>>>>>>>>${status}");
       if (response.statusCode == 200) {
         if (isRemember == true) {
           saveCredentials();
         }
-        var data = jsonDecode(response.body.toString());
+        Map data = jsonDecode(response.body);
+        String name = data["payload"]["name"];
+        String image = data["payload"]["personnel"]["imageUrl"];
+        SharedPreferences sp = await SharedPreferences.getInstance();
+        sp.setString("person_name", name.toString());
+        sp.setString("image_uri", image.toString());
 
         setState(() {
           ScaffoldMessenger.of(context).showSnackBar(Welcome_Snack);
@@ -75,8 +80,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 builder: (context) => Landingpage(),
               ));
         });
-
-        print(data);
       } else if (response.statusCode == 401) {
         print(
             "RESPONSE:_______${response.statusCode}__________________ ${response.body.toString()}");
