@@ -71,6 +71,7 @@ class _LoginScreenState extends State<LoginScreen> {
         SharedPreferences sp = await SharedPreferences.getInstance();
         sp.setString("person_name", name.toString());
         sp.setString("image_uri", image.toString());
+        sp.setString("role", data["payload"]["roles"].toString());
 
         setState(() {
           ScaffoldMessenger.of(context).showSnackBar(Welcome_Snack);

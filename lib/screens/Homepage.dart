@@ -12,9 +12,11 @@ class _HomepageState extends State<Homepage> {
   int currentstate = 0;
   String person_name = "User";
   String image_uri = "";
+  String roles = "";
   @override
   void initState() {
     Username();
+
     super.initState();
   }
 
@@ -67,17 +69,36 @@ class _HomepageState extends State<Homepage> {
       ),
       Positioned(
         right: 20,
-        top: 30,
-        child: Container(
-          padding: EdgeInsets.all(5),
-          width: 50,
-          height: 50,
-          decoration: BoxDecoration(
-              color: Colors.black,
-              borderRadius: BorderRadius.all(Radius.elliptical(10, 10))),
-          child: Image.network(
-              "https://imindsbucket.s3.ap-south-1.amazonaws.com/${image_uri}"),
-          // "https://imapi.mybusi.net/${image_uri}"),
+        top: 20,
+        child: Column(
+          children: [
+            Container(
+                padding: EdgeInsets.all(2),
+                width: 60,
+                height: 60,
+                margin: EdgeInsets.only(bottom: 10),
+                decoration: BoxDecoration(
+                    color: Colors.black,
+                    borderRadius: BorderRadius.all(Radius.circular(30))),
+                child: CircleAvatar(
+                  foregroundImage: NetworkImage(
+                      "https://imindsbucket.s3.ap-south-1.amazonaws.com/${image_uri}"),
+                )
+
+                //  Image.network(
+                //     "https://imindsbucket.s3.ap-south-1.amazonaws.com/${image_uri}"),
+
+                // "https://imapi.mybusi.net/${image_uri}"),
+                ),
+            Text(
+              roles,
+              style: TextStyle(
+                // backgroundColor: Color.fromARGB(187, 0, 251, 255),
+                color: Colors.white,
+                fontSize: 10,
+              ),
+            )
+          ],
         ),
       ),
       InkWell(
@@ -114,9 +135,12 @@ class _HomepageState extends State<Homepage> {
     SharedPreferences sp = await SharedPreferences.getInstance();
     var name = sp.getString('person_name');
     var uri = sp.getString('image_uri');
+    var role = sp.getString('role');
+
     setState(() {
       person_name = name!;
       image_uri = uri!;
+      roles = role!;
     });
   }
 }

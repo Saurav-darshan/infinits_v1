@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:infinits_v1/screens/Attendance.dart';
+import 'package:infinits_v1/screens/Attendance2.dart';
 import 'package:infinits_v1/screens/Homepage.dart';
 import 'package:infinits_v1/screens/LoginPage.dart';
 import 'package:infinits_v1/screens/TaskScreen.dart';
@@ -14,7 +14,7 @@ class Landingpage extends StatefulWidget {
 
 class _LandingpageState extends State<Landingpage> {
   int currentstate = 0;
-  List<Widget> widgetList = [Homepage(), Attendance(), TaskScreen()];
+  List<Widget> widgetList = [Homepage(), attend(), TaskScreen()];
   @override
   Widget build(BuildContext context) {
     return SafeArea(
