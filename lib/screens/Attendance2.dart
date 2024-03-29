@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:easy_date_timeline/easy_date_timeline.dart';
 import 'package:flutter/material.dart';
+import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
@@ -19,9 +20,11 @@ class _attendState extends State<attend> {
   File? SelectedImages;
   String? Inimage, InTime, InDate;
   String? Outimage, OutTime, OutDate;
+  String? Inlocation, OutLocation;
   double? latiin, latiout;
   double? longin, longout;
   bool isUserIn = false, isUserOut = false;
+
   @override
   void initState() {
     super.initState();
@@ -41,12 +44,17 @@ class _attendState extends State<attend> {
               margin: EdgeInsets.only(top: 30),
               child: EasyDateTimeLine(
                 initialDate: DateTime.now(),
-                onDateChange: (selectedDate) {},
+                onDateChange: (selectedDate) {
+                  //print(DateFormat.yMd(selectedDate));
+                },
                 dayProps: EasyDayProps(
-                  dayStructure: DayStructure.dayNumDayStr,
-                  todayHighlightStyle: TodayHighlightStyle.withBackground,
-                  todayHighlightColor: Color(0xffE1ECC8),
-                ),
+                    dayStructure: DayStructure.monthDayNumDayStr,
+                    todayHighlightStyle: TodayHighlightStyle.withBackground,
+                    todayHighlightColor: Color.fromARGB(255, 62, 7, 120),
+                    todayNumStyle: TextStyle(
+                        color: const Color.fromARGB(255, 255, 255, 255),
+                        fontSize: 40,
+                        fontWeight: FontWeight.w700)),
                 headerProps: EasyHeaderProps(
                   dateFormatter: DateFormatter.fullDateDayAsStrMY(),
                 ),
@@ -77,7 +85,7 @@ class _attendState extends State<attend> {
               color: Colors.white,
               child: Container(
                 width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height / 1.8,
+                height: MediaQuery.of(context).size.height / 1.65,
                 child: Center(
                   child: Column(
                     children: [
@@ -107,7 +115,9 @@ class _attendState extends State<attend> {
                           ElevatedButton(
                               style: ButtonStyle(
                                 backgroundColor: MaterialStatePropertyAll(
-                                    Color.fromARGB(255, 255, 136, 136)),
+                                    isUserIn == true
+                                        ? Color.fromARGB(255, 255, 136, 136)
+                                        : Colors.grey),
                                 foregroundColor:
                                     MaterialStatePropertyAll(Colors.black),
                                 elevation: MaterialStatePropertyAll(5),
@@ -279,6 +289,14 @@ class _attendState extends State<attend> {
                                           "Long = ${longin} \t Lati = ${latiin}",
                                         ),
                                       ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.pin_drop),
+                                        Text(
+                                          "${Inlocation}",
+                                        ),
+                                      ],
                                     )
                                   ],
                                 ),
@@ -288,6 +306,7 @@ class _attendState extends State<attend> {
                         ),
                       ),
                       //out-------------------->
+
                       Card(
                         elevation: 10,
                         margin: EdgeInsets.only(left: 10, right: 10, top: 20),
@@ -340,6 +359,12 @@ class _attendState extends State<attend> {
                                         Text(
                                           "Long = ${longout} \t Lati = ${latiout}",
                                         ),
+                                      ],
+                                    ),
+                                    Row(
+                                      children: [
+                                        Icon(Icons.pin_drop),
+                                        Text("${OutLocation}"),
                                       ],
                                     )
                                   ],
@@ -398,11 +423,16 @@ class _attendState extends State<attend> {
           desiredAccuracy: LocationAccuracy.best);
       latiin = currentPosition.latitude;
       longin = currentPosition.longitude;
+      List<Placemark> placemark = await placemarkFromCoordinates(
+          currentPosition.latitude, currentPosition.longitude);
+      String inLocation =
+          "${placemark[0].thoroughfare},${placemark[0].subLocality},${placemark[0].locality} ${placemark[0].postalCode}";
 
       log("lat = ${currentPosition.latitude}\nlon= ${currentPosition.longitude}");
       SharedPreferences sp = await SharedPreferences.getInstance();
       sp.setDouble("latin", latiin!.toDouble());
       sp.setDouble("longin", longin!.toDouble());
+      sp.setString("inlocation", inLocation!.toString());
       getinImage();
     }
   }
@@ -417,6 +447,7 @@ class _attendState extends State<attend> {
       InTime = sp.getString("intime")!.toString();
       latiin = sp.getDouble("latin")!.toDouble();
       longin = sp.getDouble("longin")!.toDouble();
+      Inlocation = sp.getString("inlocation")!.toString();
     });
   }
   //*************************----OUT FUNCTION---***************************** */
@@ -455,11 +486,17 @@ class _attendState extends State<attend> {
           desiredAccuracy: LocationAccuracy.best);
       latiout = currentPosition.latitude;
       longout = currentPosition.longitude;
+      List<Placemark> placemark = await placemarkFromCoordinates(
+          currentPosition.latitude, currentPosition.longitude);
+      String outLocation =
+          "${placemark[0].thoroughfare},${placemark[0].subLocality},${placemark[0].locality} ${placemark[0].postalCode}";
 
       log("lat = ${currentPosition.latitude}\nlon= ${currentPosition.longitude}");
       SharedPreferences sp = await SharedPreferences.getInstance();
       sp.setDouble("latiout", latiout!.toDouble());
       sp.setDouble("longout", longout!.toDouble());
+      sp.setString("outlocation", outLocation!.toString());
+
       getoutImage();
     }
   }
@@ -472,6 +509,7 @@ class _attendState extends State<attend> {
       OutTime = sp.getString("outtime")!.toString();
       latiout = sp.getDouble("latiout")!.toDouble();
       longout = sp.getDouble("longout")!.toDouble();
+      OutLocation = sp.getString("outlocation")!.toString();
     });
   }
 
