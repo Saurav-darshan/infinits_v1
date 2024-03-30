@@ -72,6 +72,9 @@ class _LoginScreenState extends State<LoginScreen> {
         sp.setString("person_name", name.toString());
         sp.setString("image_uri", image.toString());
         sp.setString("role", data["payload"]["roles"].toString());
+        sp.setString("accessToken", data["payload"]["accessToken"].toString());
+        sp.setString(
+            "personnel_id", data["payload"]["personnel"]["id"].toString());
 
         setState(() {
           ScaffoldMessenger.of(context).showSnackBar(Welcome_Snack);
