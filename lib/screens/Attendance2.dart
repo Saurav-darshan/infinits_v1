@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
 
@@ -5,6 +6,7 @@ import 'package:easy_date_timeline/easy_date_timeline.dart';
 import 'package:flutter/material.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -24,9 +26,12 @@ class _attendState extends State<attend> {
   double? latiin, latiout;
   double? longin, longout;
   bool isUserIn = false, isUserOut = false;
+  String? PersonalId;
+  String? AccessToken;
 
   @override
   void initState() {
+    getid();
     super.initState();
   }
 
@@ -449,22 +454,23 @@ class _attendState extends State<attend> {
       longin = sp.getDouble("longin")!.toDouble();
       Inlocation = sp.getString("inlocation")!.toString();
     });
+    SaveInAttendance(AccessToken!, PersonalId!, Inimage!,
+        DateTime.now().toString(), latiin!, longin!);
   }
   //*************************----OUT FUNCTION---***************************** */
 
   Future pickImageFormCameraout() async {
+    //------------------> camera for out Data
     final ReturnedImageData =
         await ImagePicker().pickImage(source: ImageSource.camera);
     if (ReturnedImageData == null) {
       return;
     } else {
       setState(() {
-        // SelectedImages = File(ReturnedImageData!.path);
         Outimage = ReturnedImageData.path;
         OutDate =
             "${DateTime.now().day}/${DateTime.now().month}/${DateTime.now().year} ";
         OutTime = "${DateFormat('jms').format(DateTime.now())}";
-        //"${DateTime.now().hour}: ${DateTime.now().minute}:${DateTime.now().second}";
 
         setoutImage();
       });
@@ -515,8 +521,63 @@ class _attendState extends State<attend> {
 
   FinalShow() {
     getinImage();
-    // getinLocation();
     getoutImage();
-    // getoutLocation();
+  }
+
+//----------Sending IN Data to Server------------------\\
+//
+//
+//
+  void SaveInAttendance(String AccessToken, String Personnel_id, String Inimage,
+      String Indatetime, double Inlat, double Inlong) async {
+    Map<String, dynamic> InData = {
+      "personnelId": Personnel_id,
+      "imageIn": Inimage,
+      "dateTimeIn": Indatetime,
+      "locationIn": {"lat": Inlat, "long": Inlong},
+    };
+    String jsonINPayload = jsonEncode(InData);
+    try {
+      Response response = await post(
+          Uri.parse("https://imapi.mybusi.net/api/admin/createAttendence"),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Authorization': 'Bearer $AccessToken'
+          },
+          body: jsonINPayload);
+      if (response.statusCode == 200) {
+        print(response.body);
+        Map body = jsonDecode(response.body);
+        final Welcome_Snack = SnackBar(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            content: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                color: Colors.green[700],
+              ),
+              height: 30,
+              child: Text(
+                "${body["message"]}",
+                style: TextStyle(),
+              ),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(Welcome_Snack);
+      } else {
+        print(response.statusCode);
+      }
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+
+  void getid() async {
+    //used to get personnel id & access token
+    SharedPreferences sp = await SharedPreferences.getInstance();
+    setState(() {
+      PersonalId = sp.getString("personnel_id")!.toString();
+      AccessToken = sp.getString("accessToken")!.toString();
+    });
   }
 }
