@@ -28,6 +28,7 @@ class _attendState extends State<attend> {
   bool isUserIn = false, isUserOut = false;
   String? PersonalId;
   String? AccessToken;
+  String request_id = "";
 
   @override
   void initState() {
@@ -517,6 +518,8 @@ class _attendState extends State<attend> {
       longout = sp.getDouble("longout")!.toDouble();
       OutLocation = sp.getString("outlocation")!.toString();
     });
+    SaveOutAttendance(AccessToken!, PersonalId!, Outimage!,
+        DateTime.now().toString(), latiout!, longout!, request_id);
   }
 
   FinalShow() {
@@ -548,6 +551,13 @@ class _attendState extends State<attend> {
       if (response.statusCode == 200) {
         print(response.body);
         Map body = jsonDecode(response.body);
+        log("${body["data"]["id"]}");
+        SharedPreferences sp = await SharedPreferences.getInstance();
+        sp.setString('attendance_id', body["data"]["id"].toString());
+        setState(() {
+          request_id = sp.getString('attendance_id').toString();
+        });
+
         final Welcome_Snack = SnackBar(
             elevation: 0,
             backgroundColor: Colors.transparent,
@@ -571,6 +581,60 @@ class _attendState extends State<attend> {
       print(e.toString());
     }
   }
+
+//---------------------------------------------\\
+
+  void SaveOutAttendance(
+    String AccessToken,
+    String Personnel_id,
+    String Outimage,
+    String Outdatetime,
+    double Outlat,
+    double Outlong,
+    String id,
+  ) async {
+    Map<String, dynamic> InData = {
+      "imageOut": Outimage,
+      "dateTimeOut": Outdatetime,
+      "locationOut": {"lat": Outlat, "long": Outlong},
+    };
+    String jsonINPayload = jsonEncode(InData);
+    log("${request_id}");
+    try {
+      Response response = await put(
+          Uri.parse("https://imapi.mybusi.net/api/admin/updateAttendence/$id"),
+          headers: <String, String>{
+            'Content-Type': 'application/json; charset=UTF-8',
+            'Authorization': 'Bearer $AccessToken'
+          },
+          body: jsonINPayload);
+      if (response.statusCode == 200) {
+        print(response.body);
+        Map body = jsonDecode(response.body);
+        final update_Snack = SnackBar(
+            elevation: 0,
+            backgroundColor: Colors.transparent,
+            content: Container(
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(30),
+                color: Colors.green[700],
+              ),
+              height: 30,
+              child: Text(
+                "${body["message"]}",
+                style: TextStyle(),
+              ),
+            ));
+        ScaffoldMessenger.of(context).showSnackBar(update_Snack);
+      } else {
+        print(response.statusCode);
+      }
+    } catch (e) {
+      print(e.toString());
+    }
+  }
+//---------------------------------------------\\
 
   void getid() async {
     //used to get personnel id & access token
