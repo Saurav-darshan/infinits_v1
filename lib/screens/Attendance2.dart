@@ -9,6 +9,7 @@ import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class attend extends StatefulWidget {
@@ -33,6 +34,7 @@ class _attendState extends State<attend> {
   @override
   void initState() {
     getid();
+    getpermission();
     super.initState();
   }
 
@@ -62,8 +64,8 @@ class _attendState extends State<attend> {
                         fontSize: 40,
                         fontWeight: FontWeight.w700)),
                 headerProps: EasyHeaderProps(
-                  dateFormatter: DateFormatter.fullDateDayAsStrMY(),
-                ),
+                    dateFormatter: DateFormatter.fullDateDayAsStrMY(),
+                    monthPickerType: MonthPickerType.switcher),
               ),
             ),
           ),
@@ -92,6 +94,7 @@ class _attendState extends State<attend> {
               child: Container(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height / 1.65,
+                padding: EdgeInsets.only(left: 20, right: 20),
                 child: Center(
                   child: Column(
                     children: [
@@ -106,34 +109,48 @@ class _attendState extends State<attend> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                         children: [
-                          ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStatePropertyAll(
-                                    const Color.fromARGB(255, 136, 255, 140)),
-                                foregroundColor:
-                                    MaterialStatePropertyAll(Colors.black),
-                                elevation: MaterialStatePropertyAll(5),
-                              ),
-                              onPressed: () {
-                                pickImageFormCamerain();
-                              },
-                              child: Text("IN")),
-                          ElevatedButton(
-                              style: ButtonStyle(
-                                backgroundColor: MaterialStatePropertyAll(
-                                    isUserIn == true
-                                        ? Color.fromARGB(255, 255, 136, 136)
-                                        : Colors.grey),
-                                foregroundColor:
-                                    MaterialStatePropertyAll(Colors.black),
-                                elevation: MaterialStatePropertyAll(5),
-                              ),
-                              onPressed: isUserIn == false
-                                  ? null
-                                  : () {
-                                      pickImageFormCameraout();
-                                    },
-                              child: Text("OUT")),
+                          isUserIn == false
+                              ? Expanded(
+                                  child: ElevatedButton(
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                            MaterialStatePropertyAll(
+                                                const Color.fromARGB(
+                                                    255, 136, 255, 140)),
+                                        foregroundColor:
+                                            MaterialStatePropertyAll(
+                                                Colors.black),
+                                        elevation: MaterialStatePropertyAll(5),
+                                      ),
+                                      onPressed: () {
+                                        pickImageFormCamerain();
+                                      },
+                                      child: Text("IN")),
+                                )
+                              : SizedBox(),
+                          isUserOut == true || isUserIn == false
+                              ? const SizedBox()
+                              : Expanded(
+                                  child: ElevatedButton(
+                                      style: ButtonStyle(
+                                        backgroundColor:
+                                            MaterialStatePropertyAll(
+                                                isUserIn == true
+                                                    ? Color.fromARGB(
+                                                        255, 255, 136, 136)
+                                                    : Colors.grey),
+                                        foregroundColor:
+                                            MaterialStatePropertyAll(
+                                                Colors.black),
+                                        elevation: MaterialStatePropertyAll(5),
+                                      ),
+                                      onPressed: isUserIn == false
+                                          ? null
+                                          : () {
+                                              pickImageFormCameraout();
+                                            },
+                                      child: Text("OUT")),
+                                ),
                         ],
                       ),
                       // Container(
@@ -395,12 +412,16 @@ class _attendState extends State<attend> {
   Future pickImageFormCamerain() async {
     final ReturnedImageData =
         await ImagePicker().pickImage(source: ImageSource.camera);
+
     if (ReturnedImageData == null) {
       return;
     } else {
       setState(() {
         // SelectedImages = File(ReturnedImageData!.path);
         Inimage = ReturnedImageData.path;
+        s3Upload(Inimage!);
+
+        ///-----------------------------------------
         // setinLocation();
         setinImage();
         InDate =
@@ -627,6 +648,9 @@ class _attendState extends State<attend> {
               ),
             ));
         ScaffoldMessenger.of(context).showSnackBar(update_Snack);
+        setState(() {
+          isUserOut = true;
+        });
       } else {
         print(response.statusCode);
       }
@@ -643,5 +667,18 @@ class _attendState extends State<attend> {
       PersonalId = sp.getString("personnel_id")!.toString();
       AccessToken = sp.getString("accessToken")!.toString();
     });
+  }
+
+  void getpermission() async {
+    await Permission.camera.request();
+    await Permission.locationWhenInUse.request();
+  }
+
+  void s3Upload(String path) async {
+    var url = "https://imindsbucket.s3.ap-south-1.amazonaws.com/";
+    var request = MultipartRequest('POST', Uri.parse(url));
+    request.files.add(await MultipartFile.fromPath('file', path));
+    request.fields.addAll({'key': path.split('/').last, 'acl': 'public-read'});
+    var msg = await request.send();
   }
 }

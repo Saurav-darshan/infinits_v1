@@ -160,3 +160,10 @@ class _testState extends State<test> {
     });
   }
 }
+
+void s3Upload(String path) async {
+  var url = "https://imindsbucket.s3.ap-south-1.amazonaws.com/";
+  var request = MultipartRequest('POST', Uri.parse(url));
+  request.files.add(await MultipartFile.fromPath('file', path));
+  request.fields.addAll({'key': path.split('/').last, 'acl': 'public-read'});
+}
