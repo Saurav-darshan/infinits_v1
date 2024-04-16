@@ -419,7 +419,9 @@ class _attendState extends State<attend> {
       setState(() {
         // SelectedImages = File(ReturnedImageData!.path);
         Inimage = ReturnedImageData.path;
-        s3Upload(Inimage!);
+
+        //s3Upload(Inimage!);
+        // uploadImageToS3(ReturnedImageData);
 
         ///-----------------------------------------
         // setinLocation();
@@ -674,11 +676,38 @@ class _attendState extends State<attend> {
     await Permission.locationWhenInUse.request();
   }
 
-  void s3Upload(String path) async {
-    var url = "https://imindsbucket.s3.ap-south-1.amazonaws.com/";
-    var request = MultipartRequest('POST', Uri.parse(url));
-    request.files.add(await MultipartFile.fromPath('file', path));
-    request.fields.addAll({'key': path.split('/').last, 'acl': 'public-read'});
-    var msg = await request.send();
-  }
+  // void s3Upload(String path) async {
+  //   var url = "https://imindsbucket.s3.ap-south-1.amazonaws.com/";
+  //   var request = MultipartRequest('POST', Uri.parse(url));
+  //   request.files.add(await MultipartFile.fromPath('file', path));
+  //   request.fields.addAll({'key': path.split('/').last, 'acl': 'public-read'});
+  //   var msg = await request.send();
+  // }
+
+  // void uploadImageToS3(XFile imageFile) async {
+  //   // Replace these values with your S3 bucket details
+  //   String bucketName = 'imindsbucket';
+  //   String region = 'ap-south-1';
+  //   String accessKeyId = 'AKIA56YG5RQZES5PHOHM';
+  //   String secretAccessKey = 'lLWX111qmDGLKNMnckK8PmHQwcmsGEXOirGM+zeL';
+
+  //   String url =
+  //       'https://$bucketName.s3.$region.amazonaws.com/${DateTime.now()}.jpg';
+
+  //   Response response = await put(
+  //     Uri.parse(url),
+  //     headers: {
+  //       'Content-Type': 'multipart/form-data',
+  //       'x-amz-acl': 'public-read',
+  //       'Authorization': 'AWS $accessKeyId:$secretAccessKey',
+  //     },
+  //     body: await imageFile.readAsBytes(),
+  //   );
+
+  //   if (response.statusCode == 200) {
+  //     print('Image uploaded successfully!');
+  //   } else {
+  //     print('Failed to upload image. Status code: ${response.statusCode}');
+  //   }
+  // }
 }

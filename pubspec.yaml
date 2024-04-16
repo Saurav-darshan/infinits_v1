@@ -47,6 +47,7 @@ dependencies:
   moment_dart: ^2.0.2
   permission_handler: ^11.3.1
   amplify_storage_s3: ^1.7.0
+ 
 
 dev_dependencies:
   flutter_test:
